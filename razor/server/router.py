@@ -23,13 +23,12 @@ class Router(HttpRouter):
         **opts,
     ) -> Callable[["TVObj"], "TVObj"]:
         """Register a route."""
-        """
-        Overrides the wrapper method to support CBV views
-        """
 
         def wrapper(target: "TVObj") -> "TVObj":
             nonlocal methods
-
+            """
+            Overrides the wrapper method to support CBV views
+            """
             if inspect.isclass(target) and issubclass(target, View):
                 target = target.as_view()
             else:
@@ -51,6 +50,9 @@ class Router(HttpRouter):
         return wrapper
 
     def add_routes(self, *routes):
+        """
+        Add routes should support all methods for FBV, so super's route method is called here
+        """
         for route_rule in routes:
             *paths, handle = route_rule
-            self.route(*paths)(handle)
+            super().route(*paths)(handle)
