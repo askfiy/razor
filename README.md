@@ -20,12 +20,13 @@ Using Razor is fairly simple, and here's a short example:
 
 ```python
 from razor import Application
+from razor import TextResponse
 
 app = Application()
 
 @app.route("/index/")
 async def index():
-    return "Hello Razor"
+    return TextResponse("Hello Razor")
 
 if __name__ == "__main__":
     app.run()

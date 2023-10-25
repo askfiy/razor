@@ -170,7 +170,7 @@ class Application:
         self,
         app: Optional[str | Type["Application"]] = None,
         host: str = "127.0.0.1",
-        port: int = 5001,
+        port: int = 5200,
         debug: bool = False,
         use_reloader: bool = True,
         ssl_ca_certs: Optional[str] = None,
