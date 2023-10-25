@@ -26,3 +26,4 @@ from .response import (
 )
 
 from .views import View
+from .logs import logger
