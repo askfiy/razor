@@ -69,6 +69,7 @@ class AsgiHttpHandle:
 
         logger.error(
             f"Invalid response type, expecting `{Response.__name__}` but getting `{type(handle_response).__name__}`")
+
         return ErrorResponse(status_code=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     async def __call__(self, scope: AsgiScope, receive: AsgiReceive, send: AsgiSend):

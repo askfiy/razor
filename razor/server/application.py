@@ -172,11 +172,13 @@ class Application:
         host: str = "127.0.0.1",
         port: int = 5200,
         debug: bool = False,
-        use_reloader: bool = True,
+        reload: bool = True,
         ssl_ca_certs: Optional[str] = None,
         ssl_certfile: Optional[str] = None,
         ssl_keyfile: Optional[str] = None,
         log_config: Optional[Union[Dict[str, Any], str]] = LOGGING_CONFIG,
+        workers: Optional[int] = None,
+        access_log: bool = True,
         **kwargs: Any
     ):
         """
@@ -195,13 +197,12 @@ class Application:
         print(f"* Debug mode: {self.debug or False}")
         print(f"* Running on \033[1m{scheme}://{host}:{port}\033[0m (CTRL + C to quit)")
 
-        if not isinstance(app, str) and (use_reloader or kwargs.get("workers", 1) > 1):
-            if not self.debug:
-                print("* Not in debug mode. close auto reload")
-            else:
-                print("* You must pass the application as an import string to enable 'reload' or " "'workers'.")
+        if not isinstance(app, str):
+            if reload or workers:
+                print("* You must pass the application as an import string to enable 'reload' or 'workers")
 
-            use_reloader = False
+            workers = 1
+            reload = False
 
         print(stars)
 
@@ -209,10 +210,12 @@ class Application:
             app,
             host=host,
             port=port,
-            reload=use_reloader,
+            reload=reload,
             ssl_certfile=ssl_certfile,
             ssl_keyfile=ssl_keyfile,
             ssl_ca_certs=ssl_ca_certs,
             log_config=log_config,
+            workers=workers,
+            access_log=access_log,
             **kwargs
         )

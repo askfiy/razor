@@ -67,7 +67,6 @@ class Request:
             self._headers = MultiDict()
             for key, val in self.scope["headers"]:
                 self._headers.add(key.decode(DEFAULT_CHARSET), val.decode(DEFAULT_CHARSET))
-            self._headers["remote-addr"] = (self.scope.get("client") or ["<local>"])[0]
         return self._headers
 
     @property
