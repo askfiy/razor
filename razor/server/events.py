@@ -1,3 +1,4 @@
+from typing import Dict, List, Awaitable, Any
 from .exceptions import RegisterEventException
 
 # currently supports internal event types
@@ -19,17 +20,21 @@ class EventManager:
     """
 
     def __init__(self):
-        self._events = {}
+        self._events: Dict[str, List[Awaitable[Any, Any]]] = {
+            k: []
+            for k in EVENT_TYPE
+        }
 
     def register(self, event: str, callback):
         if event not in EVENT_TYPE:
             raise RegisterEventException(f"registering an `{event}` failed, event is not exists")
-
-        if event in self._events:
-            raise RegisterEventException(f"registering an `{event}` failed, callback is registered")
-        self._events[event] = callback
+        self._events[event].append(callback)
 
     async def run_callback(self, event, *args, **kwargs):
-        callback = self._events.get(event)
-        if callback:
-            return await callback(*args, **kwargs)
+        callbacks = self._events.get(event)
+        for callback in callbacks:
+            cb_r = await callback(*args, **kwargs)
+            if cb_r is not None:
+                args = (cb_r, )
+        if args:
+            return args[0]

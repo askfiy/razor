@@ -57,6 +57,9 @@ class Response:
 
         await send({"type": "http.response.body", "body": self.content})
 
+    def __repr__(self) -> str:
+        return f"<{self.__class__.__name__} {self.status_code}>"
+
 
 class TextResponse(Response):
     content_type = "text/plain"

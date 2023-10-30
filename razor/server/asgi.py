@@ -86,7 +86,7 @@ class AsgiHttpHandle:
             response = ErrorResponse(status_code=HTTPStatus.METHOD_NOT_ALLOWED)
         except Exception as exc:
             logger.exception(exc)
-            response = await self.app.event_manager.run_callback("error", exc)
+            response = await self.app.event_manager.run_callback("exception", exc)
             if not isinstance(response, Response):
                 response = ErrorResponse(status_code=HTTPStatus.INTERNAL_SERVER_ERROR)
         finally:
