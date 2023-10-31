@@ -58,26 +58,3 @@ class RequestContext(Context):
             var=self._request
         )
 
-
-class ContextManager:
-    """
-    The Context Manager currently contains:
-        - App context
-        - Request context
-    The future may include:
-        - Session context
-    """
-
-    def __init__(self, app: "Application", scope: AsgiReceive, receive: AsgiReceive, send: AsgiSend) -> None:
-        self._ctxs_: List[Type[Context]] = [
-            ApplicationContext(app),
-            RequestContext(scope, receive, send),
-        ]
-
-    def push(self) -> None:
-        for _ctx in self._ctxs_:
-            _ctx.push()
-
-    def pop(self) -> None:
-        for _ctx in self._ctxs_:
-            _ctx.pop()

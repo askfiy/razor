@@ -200,7 +200,6 @@ class Application:
         if not isinstance(app, str):
             if reload or workers:
                 print("* You must pass the application as an import string to enable 'reload' or 'workers")
-
             workers = 1
             reload = False
 

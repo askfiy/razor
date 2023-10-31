@@ -19,11 +19,21 @@ class AsgiLifespanHandle:
     def __init__(self, app: "Application"):
         self.app = app
 
+    def _make_app_context(self):
+        """
+        Create a application context object
+        """
+        from .context import ApplicationContext
+        return ApplicationContext(self.app)
+
     async def __call__(self, scope: AsgiScope, receive: AsgiReceive, send: AsgiSend):
         """
         ASGI creates an Asyncio Task for each request
         So the while loop here does not block the main coroutine
         """
+        ctx = self._make_app_context()
+        ctx.push()
+
         while True:
             message = await receive()
             # The application starts
@@ -35,6 +45,8 @@ class AsgiLifespanHandle:
                 asgi_message = await self._callback_fn_("shutdown")
                 await send(asgi_message)
                 break
+
+        ctx.pop()
 
     async def _callback_fn_(self, event: str) -> AsgiMessage:
         try:
@@ -48,15 +60,12 @@ class AsgiHttpHandle:
     def __init__(self, app: "Application"):
         self.app = app
 
-    def _make_context(self, scope: AsgiScope, receive: AsgiReceive, send: AsgiSend):
+    def _make_req_context(self, scope: AsgiScope, receive: AsgiReceive, send: AsgiSend):
         """
-        Create a context object
-        It contains:
-            - current request instance
-            - current application instance
+        Create a request context object
         """
-        from .context import ContextManager
-        return ContextManager(self.app, scope, receive, send)
+        from .context import RequestContext
+        return RequestContext(scope, receive, send)
 
     async def _run_handler(self, handle):
         await self.app.event_manager.run_callback("before_request")
@@ -73,7 +82,7 @@ class AsgiHttpHandle:
         return ErrorResponse(status_code=HTTPStatus.INTERNAL_SERVER_ERROR)
 
     async def __call__(self, scope: AsgiScope, receive: AsgiReceive, send: AsgiSend):
-        ctx = self._make_context(scope, receive, send)
+        ctx = self._make_req_context(scope, receive, send)
         ctx.push()
         path, method = scope["path"], scope["method"]
 
