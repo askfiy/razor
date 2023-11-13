@@ -68,7 +68,10 @@ class AsgiHttpHandle:
         return RequestContext(scope, receive, send)
 
     async def _run_handler(self, handle):
-        await self.app.event_manager.run_callback("before_request")
+        before_response = await self.app.event_manager.run_callback("before_request")
+        if isinstance(before_response, Response):
+            return before_response
+
         handle_response = await handle()
         if isinstance(handle_response, Response):
             callback_response = await self.app.event_manager.run_callback("after_request", handle_response)

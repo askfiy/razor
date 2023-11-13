@@ -7,7 +7,7 @@ from uvicorn import run as run_server
 from .logs import LOGGING_CONFIG
 from .router import Router
 from .events import EventManager
-from .types import AsgiScope, AsgiReceive, AsgiSend, RouterGroup
+from .types import AsgiScope, AsgiReceive, AsgiSend
 from .asgi import AsgiLifespanHandle, AsgiHttpHandle, AsgiWebsocketHandle
 
 
