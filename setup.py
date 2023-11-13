@@ -17,6 +17,7 @@ setup(
         'multidict',
         'markupsafe',
         'python-multipart',
+        'blinker '
     ],
     author="askfiy",
     author_email="c2323182108@gmail.com",

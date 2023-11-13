@@ -3,39 +3,32 @@ from .response import Response
 from .exceptions import RegisterEventException
 
 
-class AbstractEvent:
-    def __call__(self, callback_result, event):
-        if callback_result is not None:
+class EventResponseHandler:
+    def __call__(self, event, cb_resp):
+        return getattr(self, f"__{event}__")(event, cb_resp)
+
+    def __startup__(self, event, cb_resp):
+        if cb_resp is not None:
             raise TypeError(f"event '{event}' callback result is not None")
 
+    def __shutdown__(self, event, cb_resp):
+        if cb_resp is not None:
+            raise TypeError(f"event '{event}' callback result is not None")
 
-class StartupEvent(AbstractEvent):
-    pass
-
-
-class ShutdownEvent(AbstractEvent):
-    pass
-
-
-class AfterRequestEvent(AbstractEvent):
-    def __call__(self, callback_result, event):
-        if not isinstance(callback_result, Response):
+    def __after_request__(self, event, cb_resp):
+        if not isinstance(cb_resp, Response):
             raise TypeError(f"event '{event}' callback result is not {Response.__class__.__name__}")
-        return callback_result
+        return cb_resp
 
-
-class BeforeRequestEvent(AbstractEvent):
-    def __call__(self, callback_result, event):
-        if (callback_result is not None) and (not isinstance(callback_result, Response)):
+    def __before_request__(self, event, cb_resp):
+        if (cb_resp is not None) and (not isinstance(cb_resp, Response)):
             raise TypeError(f"event '{event}' callback result is not {Response.__class__.__name__} or None")
-        return callback_result
+        return cb_resp
 
-
-class ExceptionEvent(AbstractEvent):
-    def __call__(self, callback_result, event):
-        if not (isinstance(callback_result, Exception) or isinstance(callback_result, Response)):
+    def __exception__(self, event, cb_resp):
+        if not (isinstance(cb_resp, Exception) or isinstance(cb_resp, Response)):
             raise TypeError(f"event '{event}' callback result is not {Response.__class__.__name__} or Exception")
-        return callback_result
+        return cb_resp
 
 
 class EventManager:
@@ -43,31 +36,31 @@ class EventManager:
     An event manager object that provides functionality such as registering events and running callbacks
     """
 
-    SUPPORT_EVENT = {
-        "startup": StartupEvent(),
-        "shutdown": ShutdownEvent(),
-        "after_request": AfterRequestEvent(),
-        "before_request": BeforeRequestEvent(),
-        "exception": ExceptionEvent()
-    }
+    EVENT_TYPES = (
+        "startup",
+        "shutdown",
+        "after_request",
+        "before_request",
+        "exception"
+    )
 
     def __init__(self):
         self._events: Dict[str, List[Awaitable[Any, Any]]] = {
-            k: []
-            for k in self.SUPPORT_EVENT.keys()
+            event: []
+            for event in self.EVENT_TYPES
         }
+        self._event_resp_handle = EventResponseHandler()
 
     def register(self, event: str, callback):
-        if event not in self.SUPPORT_EVENT.keys():
+        if event not in self.EVENT_TYPES:
             raise RegisterEventException(f"registering an `{event}` failed, event is not exists")
         self._events[event].append(callback)
 
     async def run_callback(self, event, *args, **kwargs):
         callbacks = self._events.get(event)
-        callback_type_ins = self.SUPPORT_EVENT[event]
 
         for callback in callbacks:
-            cb_r = callback_type_ins(await callback(*args, **kwargs), event)
+            cb_r = self._event_resp_handle(event, await callback(*args, **kwargs))
             if cb_r is not None:
                 args = (cb_r, )
         if args:
