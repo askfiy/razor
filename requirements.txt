@@ -1,0 +1,10 @@
+aiofiles==24.1.0
+blinker==1.8.2
+click==8.1.7
+h11==0.14.0
+http-router==4.1.2
+MarkupSafe==2.1.5
+multidict==6.0.5
+PySocks==1.7.1
+python-multipart==0.0.9
+uvicorn==0.30.4
